@@ -3,6 +3,20 @@
   "globIgnorePaths": [ "**/.package-lock.json" ],
   "tree": {
     "$className": "DataModel",
+    "ReplicatedStorage": {
+      "Remotes": {
+        "$className": "Folder",
+        "CombatEvent": {
+          "$className": "RemoteEvent"
+        },
+        "DeltaCompress": {
+          "$className": "RemoteEvent"
+        },
+        "CombatFunction": {
+          "$className": "RemoteFunction"
+        }
+      }
+    },
     "ServerScriptService": {
       "Game": {
         "$className": "Folder",

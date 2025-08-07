@@ -9,3 +9,5 @@ dist
 sourcemap.json
 package-lock.json
 .DS_Store
+spy-game
+integration

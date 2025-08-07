@@ -1,20 +1,19 @@
 --[=[
-	@class GameService
+	@class GameBindersClient
 ]=]
 
 local require = require(script.Parent.loader).load(script)
 
 local ServiceBag = require("ServiceBag")
 
-local GameService = {}
-GameService.ServiceName = "GameService"
+local GameBindersClient = {}
+GameBindersClient.ServiceName = "GameBindersClient"
 
-function GameService:Init(serviceBag)
+function GameBindersClient:Init(serviceBag)
 	assert(not self._serviceBag, "Already initialized")
 	self._serviceBag = assert(serviceBag, "No serviceBag")
 
-	-- Add server services here
-	self._serviceBag:GetService(require("CombatServer"))
+	-- Add client binders here
 end
 
-return GameService
+return GameBindersClient

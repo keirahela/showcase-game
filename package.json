@@ -11,12 +11,15 @@
   "dependencies": {
     "@quenty/attributeutils": "^14.18.0",
     "@quenty/binder": "^14.21.0",
+    "@quenty/characterutils": "^12.20.0",
     "@quenty/clienttranslator": "^14.20.0",
     "@quenty/cmdrservice": "^13.24.0",
     "@quenty/linkutils": "^13.18.0",
     "@quenty/loader": "^10.9.0",
+    "@quenty/maid": "^3.5.0",
     "@quenty/rxbinderutils": "^14.21.0",
     "@quenty/servicebag": "^11.13.0",
+    "@quenty/signal": "^7.11.0",
     "@quenty/vector3utils": "^10.9.0"
   },
   "publishConfig": {
