@@ -1,7 +1,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService('Players')
 --[=[
-	@class CombatClient
+	@class CombatServer
 ]=]
 local Types = require("../Shared/CombatConfig/Types")
 local CombatEvent = ReplicatedStorage.Remotes.CombatEvent
@@ -12,7 +12,7 @@ local maid = require("Maid")
 local DeltaCompress = require("DeltaCompress")
 
 local CombatServer = {}
-CombatServer.ServiceName = "GameService"
+CombatServer.ServiceName = "CombatServer"
 
 local function onPlayerAdded(self,player:Player)
 
@@ -43,7 +43,13 @@ local function onPlayerRemoving(self,player)
 	self.Handler[player].maid:DoCleaning()
 	self.Handler[player] = nil
 end
+
 function CombatServer.Init(self, serviceBag)
+	assert(not self._serviceBag, "Already initialized")
+	self._serviceBag = assert(serviceBag, "No serviceBag")
+	
+	self._maid = maid.new()
+	
 	self = {
 		["Handler"] = {},
 		["Methods"] = {
@@ -59,27 +65,52 @@ function CombatServer.Init(self, serviceBag)
 		},
 		["CastWhitelist"] = {}
 	}
+	
 	for k,v in Players:GetPlayers() do
 		onPlayerAdded(self, v)
 	end
-	Players.PlayerAdded:Connect(function(player)
+	
+	self._maid:GiveTask(Players.PlayerAdded:Connect(function(player)
 		onPlayerAdded(self, player)
-	end)
+	end))
+	
+	self._maid:GiveTask(Players.PlayerRemoving:Connect(function(player)
+		onPlayerRemoving(self, player)
+	end))
 
-	CombatEvent.OnServerEvent:Connect(function(player,Category,callName, ...)
+	self._maid:GiveTask(CombatEvent.OnServerEvent:Connect(function(player,Category,callName, ...)
 		local method = self["Methods"][Category][callName]
 		if not method then
 			error(`Method not found for {Category}/{callName}`)
 		end
 		--CurrentAction : thread?,--task.spawn(Methods.Combat[Action])
 		self.Handler[player]["CurrentAction"] = task.spawn(method , self, player, callName, ...)
-	end)
+	end))
 	
-	DeltaCompressEvent.OnServerEvent:Connect(function(player, newState)
+	self._maid:GiveTask(DeltaCompressEvent.OnServerEvent:Connect(function(player, newState)
 		self["Handler"][player]["State"] = DeltaCompress.applyImmutable(self["Handler"][player]["State"], newState )
-	end)
+	end))
 	
 	return self
+end
+
+
+function CombatServer:Destroy()
+	if self._maid then
+		self._maid:Destroy()
+		self._maid = nil
+	end
+	
+	for player, handler in pairs(self.Handler) do
+		if handler.maid then
+			handler.maid:DoCleaning()
+		end
+		if handler.CurrentAction then
+			task.cancel(handler.CurrentAction)
+		end
+	end
+	
+	self._serviceBag = nil
 end
 
 local OverlapParameters = OverlapParams.new()

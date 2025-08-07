@@ -66,6 +66,11 @@ local function OnPlayerAdded(self, player)
 end
 
 function CombatClient.Init(self, serviceBag)
+	assert(not self._serviceBag, "Already initialized")
+	self._serviceBag = assert(serviceBag, "No serviceBag")
+	
+	self._maid = Maid.new()
+	
 	self = {
 		["_serviceBag"] = assert(serviceBag, "No serviceBag"),
 		["Inputs"] = {
@@ -122,7 +127,10 @@ function CombatClient.Init(self, serviceBag)
 	for k,v in Players:GetPlayers() do
 		task.spawn(OnPlayerAdded,self, v)
 	end
-	Players.ChildAdded:Connect(function(player) OnPlayerAdded(self,player) end)
+	
+	self._maid:GiveTask(Players.ChildAdded:Connect(function(player) 
+		OnPlayerAdded(self,player) 
+	end))
 
 	InputClient.connectInputs(self)
 
@@ -138,6 +146,26 @@ function CombatClient.Init(self, serviceBag)
 	end
 
 	return self:: Types.CombatClient
+end
+
+function CombatClient:Destroy()
+	if self._maid then
+		self._maid:Destroy()
+		self._maid = nil
+	end
+	
+	if self.currentHitStringReset then
+		task.cancel(self.currentHitStringReset)
+		self.currentHitStringReset = nil
+	end
+	
+	for _, request in pairs(self.Requests) do
+		if request then
+			task.cancel(request)
+		end
+	end
+	
+	self._serviceBag = nil
 end
 
 local EligibleTypes = {
